@@ -1,0 +1,82 @@
+name: Dashboard CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'admin-dashboard/**'
+      - '.github/workflows/dashboard-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'admin-dashboard/**'
+
+jobs:
+  test:
+    name: Test Admin Dashboard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: admin-dashboard/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./admin-dashboard
+        run: npm ci
+
+      - name: Lint
+        working-directory: ./admin-dashboard
+        run: npm run lint
+
+      - name: Type check
+        working-directory: ./admin-dashboard
+        run: npm run type-check
+
+      - name: Run tests
+        working-directory: ./admin-dashboard
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./admin-dashboard/coverage/coverage-final.json
+          flags: dashboard
+          name: dashboard-coverage
+
+  build:
+    name: Build Dashboard
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: admin-dashboard/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./admin-dashboard
+        run: npm ci
+
+      - name: Build
+        working-directory: ./admin-dashboard
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dashboard-build
+          path: admin-dashboard/dist
+          retention-days: 7
