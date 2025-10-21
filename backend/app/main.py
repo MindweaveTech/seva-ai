@@ -104,10 +104,14 @@ async def root():
     }
 
 
-# TODO: Include API routers
-# from app.api.v1 import auth, chat, health, users, voice
-# app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-# app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
+# Include API routers
+from app.api.v1 import auth, chat
+
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
+
+# TODO: Add more routers as they're implemented
+# from app.api.v1 import health, users, voice
 # app.include_router(health.router, prefix="/api/v1/health", tags=["Health"])
 # app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 # app.include_router(voice.router, prefix="/api/v1/voice", tags=["Voice"])
