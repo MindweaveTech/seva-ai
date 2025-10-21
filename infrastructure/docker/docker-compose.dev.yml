@@ -76,32 +76,45 @@ services:
     networks:
       - seva-network
 
-  # Backend API (optional - can run locally)
-  # Uncomment when backend is ready
-  # backend:
-  #   build:
-  #     context: ../../backend
-  #     dockerfile: Dockerfile
-  #   container_name: seva-backend
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-seva_user}:${POSTGRES_PASSWORD:-seva_password}@postgres:5432/${POSTGRES_DB:-seva_ai}
-  #     WEAVIATE_URL: http://weaviate:8080
-  #     REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
-  #     ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-  #     OPENAI_API_KEY: ${OPENAI_API_KEY}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     weaviate:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ../../backend:/app
-  #   networks:
-  #     - seva-network
+  # Nginx Reverse Proxy
+  nginx:
+    build:
+      context: ../nginx
+      dockerfile: Dockerfile
+    container_name: seva-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - seva-network
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: seva-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-seva_user}:${POSTGRES_PASSWORD:-seva_password}@postgres:5432/${POSTGRES_DB:-seva_ai}
+      WEAVIATE_URL: http://weaviate:8080
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SECRET_KEY: ${SECRET_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      weaviate:
+        condition: service_healthy
+    volumes:
+      - ../../backend:/app
+    networks:
+      - seva-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
