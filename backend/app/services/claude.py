@@ -71,8 +71,9 @@ Always maintain a friendly, supportive tone and prioritize the user's comfort an
 
         try:
             # Call Claude API
+            # Updated to use latest Sonnet 3.5 model (2024-10-22)
             response = self.client.messages.create(
-                model="claude-3-sonnet-20240229",  # or claude-3-opus for better quality
+                model="claude-3-5-sonnet-20241022",  # Latest Sonnet 3.5
                 max_tokens=max_tokens,
                 system=system_prompt,
                 messages=messages,

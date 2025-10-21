@@ -14,12 +14,10 @@ Quick guide to get the Smart AI backend running locally.
 
 ```bash
 # From project root
-cd infrastructure/docker
-cp .env.example .env
-docker-compose -f docker-compose.dev.yml up -d
+docker-compose -f infrastructure/docker/docker-compose.dev.yml up -d
 
 # Verify services are running
-docker-compose -f docker-compose.dev.yml ps
+docker ps --filter name=seva-
 ```
 
 This starts:
@@ -57,18 +55,32 @@ cp .env.example .env
 # - SECRET_KEY (generate with: openssl rand -hex 32)
 ```
 
-### 4. Initialize Database
+### 4. Database Setup
+
+**Note:** The database is already initialized with all tables! You can skip this step.
+
+If you need to recreate the database:
 
 ```bash
 # Run database migrations
 alembic upgrade head
 
-# Verify in Adminer: http://localhost:8081
-# Server: postgres
-# Username: seva_user
-# Password: seva_password
-# Database: seva_ai
+# Or use the SQL script directly
+docker exec -i seva-postgres psql -U seva_user -d seva_ai < ../database/postgresql/schemas/001_init.sql
 ```
+
+**Create Test User:**
+
+```bash
+# Create test user (test@smartai.com / TestPass123!)
+docker exec -i seva-postgres psql -U seva_user -d seva_ai < create_test_user.sql
+```
+
+**Verify in Adminer:** http://localhost:8081
+- Server: `seva-postgres`
+- Username: `seva_user`
+- Password: `seva_password`
+- Database: `seva_ai`
 
 ### 5. Run the Server
 
