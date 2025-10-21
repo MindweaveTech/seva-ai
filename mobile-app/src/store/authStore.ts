@@ -12,6 +12,7 @@ interface AuthState {
   error: string | null;
 
   // Actions
+  initializeAuth: () => Promise<void>;
   login: (data: LoginData) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
@@ -24,6 +25,40 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isLoading: false,
   error: null,
+
+  initializeAuth: async () => {
+    try {
+      const isAuth = await authService.isAuthenticated();
+
+      if (!isAuth) {
+        set({ isAuthenticated: false, user: null });
+        return;
+      }
+
+      // Try to get cached user first for faster startup
+      const cachedUser = await authService.getCachedUser();
+      if (cachedUser) {
+        set({
+          user: cachedUser,
+          isAuthenticated: true,
+        });
+      }
+
+      // Then refresh from API in the background
+      try {
+        const user = await authService.getCurrentUser();
+        set({ user, isAuthenticated: true });
+      } catch (error) {
+        // If API fails but we have cached user, keep using cached
+        if (!cachedUser) {
+          set({ user: null, isAuthenticated: false });
+        }
+      }
+    } catch (error) {
+      console.error('Initialize auth error:', error);
+      set({ user: null, isAuthenticated: false });
+    }
+  },
 
   login: async (data: LoginData) => {
     set({ isLoading: true, error: null });
