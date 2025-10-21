@@ -3,6 +3,13 @@ FROM nginx:1.25-alpine
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# Remove default config
+RUN rm -f /etc/nginx/conf.d/default.conf
+
+# Copy static HTML files
+RUN mkdir -p /etc/nginx/html
+COPY expo-connect.html /etc/nginx/html/expo-connect.html
+
 # Create log directory
 RUN mkdir -p /var/log/nginx
 
